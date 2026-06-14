@@ -1,0 +1,10 @@
+{
+  "name": "evillite-hub",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "web": "yarn workspace @evillite-hub/frontend dev"
+  }
+}

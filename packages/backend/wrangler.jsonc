@@ -1,0 +1,13 @@
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "evillite-hub-api",
+    "main": "src/index.ts",
+    "compatibility_date": "2026-06-10",
+    "d1_databases": [
+        {
+            "binding": "DB",
+            "database_name": "evillite-hub-db",
+            "database_id": "YOUR_ACTUAL_CLOUDFLARE_D1_DATABASE_UUID_HERE"
+        }
+    ]
+}

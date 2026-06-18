@@ -7,5 +7,6 @@
   "scripts": {
     "web": "yarn workspace @evillite-hub/frontend dev",
     "api": "yarn workspace @evillite-hub/backend dev"
-  }
+  },
+  "packageManager": "yarn@4.17.0"
 }

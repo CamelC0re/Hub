@@ -4,7 +4,8 @@ import Layout from '../layouts/Layout.astro';
 // Fetch the approved plugins manifest
 let plugins = [];
 try {
-	const response = await fetch('http://localhost:8787/manifest.json');
+	const API_URL = import.meta.env.DEV ? 'http://localhost:8787' : import.meta.env.PUBLIC_API_URL;
+	const response = await fetch(`${API_URL}/manifest.json`);
 	if (response.ok) {
 		plugins = await response.json();
 	} else {

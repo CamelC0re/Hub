@@ -3,6 +3,7 @@
     let discordId = null;
     let githubId = null;
     let username = '';
+    const API_URL = import.meta.env.DEV ? 'http://localhost:8787' : import.meta.env.PUBLIC_API_URL;
 
     // Bypass the onMount quirk and initialize immediately on the client
     if (typeof window !== 'undefined') {
@@ -30,8 +31,8 @@
 
 <div class="auth-section">
     {#if !token}
-        <a id="discord-login-btn" href="http://localhost:8787/api/auth/discord/login" class="login-btn">Login via Discord</a>
-        <a id="github-login-btn" href="http://localhost:8787/api/auth/github/login" class="login-btn github-btn">Login via GitHub</a>
+        <a id="discord-login-btn" href="{API_URL}/api/auth/discord/login" class="login-btn">Login via Discord</a>
+        <a id="github-login-btn" href="{API_URL}/api/auth/github/login" class="login-btn github-btn">Login via GitHub</a>
     {:else}
         <span class="user-info">
             Welcome, <strong>{username}</strong>!
@@ -39,10 +40,10 @@
         
         <div class="link-actions">
             {#if !discordId}
-                <a href="http://localhost:8787/api/auth/discord/login?token={token}" class="link-btn discord">Link Discord</a>
+                <a href="{API_URL}/api/auth/discord/login?token={token}" class="link-btn discord">Link Discord</a>
             {/if}
             {#if !githubId}
-                <a href="http://localhost:8787/api/auth/github/login?token={token}" class="link-btn github">Link GitHub</a>
+                <a href="{API_URL}/api/auth/github/login?token={token}" class="link-btn github">Link GitHub</a>
             {/if}
         </div>
         

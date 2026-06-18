@@ -27,15 +27,20 @@ type Bindings = {
   GITHUB_CLIENT_SECRET: string;
   GITHUB_BUILDER_PAT: string;
   JWT_SECRET: string;
+  FRONTEND_URL?: string;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
 
 // 2. Enable safe communication routes for your Astro front-end
-app.use('*', cors({
-  origin: ['https://evillite.wiki', 'http://localhost:4321'], // Allow production and local Astro ports
-  credentials: true,
-}));
+app.use('*', async (c, next) => {
+  const allowedOrigins = [c.env.FRONTEND_URL || 'http://localhost:4321'];
+  const corsMiddleware = cors({
+    origin: allowedOrigins,
+    credentials: true,
+  });
+  return corsMiddleware(c, next);
+});
 
 // 3. Setup your Zod Validation Contracts [cite: 123, 127]
 const submitPluginSchema = z.object({
@@ -179,9 +184,7 @@ app.get('/api/auth/discord/callback', async (c) => {
   }, c.env.JWT_SECRET, 'HS256');
 
   // Redirect to frontend
-  const frontendUrl = url.hostname === 'localhost' || url.hostname === '127.0.0.1'
-    ? 'http://localhost:4321'
-    : 'https://evillite.wiki';
+  const frontendUrl = c.env.FRONTEND_URL || 'http://localhost:4321';
 
   return c.redirect(`${frontendUrl}/auth-callback?token=${jwt}`);
 });
@@ -279,9 +282,7 @@ app.get('/api/auth/github/callback', async (c) => {
   }, c.env.JWT_SECRET, 'HS256');
 
   // Redirect to frontend
-  const frontendUrl = url.hostname === 'localhost' || url.hostname === '127.0.0.1'
-    ? 'http://localhost:4321'
-    : 'https://evillite.wiki';
+  const frontendUrl = c.env.FRONTEND_URL || 'http://localhost:4321';
 
   return c.redirect(`${frontendUrl}/auth-callback?token=${jwt}`);
 });

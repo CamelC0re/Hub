@@ -37,7 +37,8 @@
                 }
             }
 
-            const res = await fetch('http://localhost:8787/api/developer/plugins', {
+            const API_URL = import.meta.env.DEV ? 'http://localhost:8787' : import.meta.env.PUBLIC_API_URL;
+            const res = await fetch(`${API_URL}/api/developer/plugins`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -61,7 +62,8 @@
 
     async function updatePlugin(id) {
         try {
-            const res = await fetch(`http://localhost:8787/api/developer/plugins/${id}/update`, {
+            const API_URL = import.meta.env.DEV ? 'http://localhost:8787' : import.meta.env.PUBLIC_API_URL;
+            const res = await fetch(`${API_URL}/api/developer/plugins/${id}/update`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`

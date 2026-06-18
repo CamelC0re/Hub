@@ -1,19 +1,19 @@
 {
-    "$schema": "node_modules/wrangler/config-schema.json",
-    "name": "camelcore-api",
-    "main": "src/index.ts",
-    "compatibility_date": "2026-06-10",
-    "d1_databases": [
-        {
-            "binding": "DB",
-            "database_name": "camelcore-db",
-            "database_id": "YOUR_ACTUAL_CLOUDFLARE_D1_DATABASE_UUID_HERE"
-        }
-    ],
-    "r2_buckets": [
-        {
-            "binding": "STORAGE_BUCKET",
-            "bucket_name": "camelcore-plugins"
-        }
-    ]
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "camelcore-api",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-06-10",
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "camelcore",
+			"database_id": "dada089a-19c1-43b5-bd73-0082371267e0"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "STORAGE_BUCKET",
+			"bucket_name": "camelcore-plugins"
+		}
+	]
 }

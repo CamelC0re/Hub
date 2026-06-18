@@ -1,0 +1,48 @@
+---
+import Layout from '../layouts/Layout.astro';
+import DeveloperDashboard from '../components/DeveloperDashboard.svelte';
+---
+
+<Layout title="Developer Dashboard - CamelCore">
+    <main class="page-container">
+        <header class="page-header">
+            <h1>Developer Dashboard</h1>
+            <p>Manage your approved plugins and sync latest updates from GitHub.</p>
+        </header>
+
+        <section class="dashboard-content">
+            <DeveloperDashboard client:only="svelte" />
+        </section>
+    </main>
+</Layout>
+
+<style>
+    .page-container {
+        padding: 4rem 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        text-align: center;
+        margin-bottom: 4rem;
+    }
+
+    .page-header h1 {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: var(--color-primary);
+        text-shadow: 0 0 20px rgba(184, 134, 11, 0.3);
+    }
+
+    .page-header p {
+        color: var(--color-text-muted);
+        font-size: 1.2rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .dashboard-content {
+        margin-top: 2rem;
+    }
+</style>

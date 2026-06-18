@@ -1,0 +1,62 @@
+---
+import '../styles/global.css';
+import AuthNav from '../components/AuthNav.svelte';
+
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title}</title>
+	</head>
+	<body>
+		<nav class="navbar">
+			<span class="nav-brand">EvilLite</span>
+			<div class="nav-links">
+				<a href="/">Home</a>
+				<a href="/plugins">Plugins</a>
+				<a href="/submit" id="submit-link" style="display: none;">Submit Plugin</a>
+				<a href="/admin" id="admin-link" style="display: none;">Admin</a>
+			</div>
+			<AuthNav client:load />
+		</nav>
+		
+		<slot />
+
+		<script>
+			const token = localStorage.getItem('evillite_token');
+			if (token) {
+				try {
+					const payloadBase64 = token.split('.')[1];
+					const base64 = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
+					const payload = JSON.parse(atob(base64));
+					
+					if (payload.github_id) {
+						const submitLink = document.getElementById('submit-link');
+						if (submitLink) {
+							submitLink.style.display = 'inline';
+						}
+					}
+
+					if (payload.isAdmin) {
+						const adminLink = document.getElementById('admin-link');
+						if (adminLink) {
+							adminLink.style.display = 'inline';
+						}
+					}
+				} catch (e) {
+					console.error('Failed to parse token for nav check');
+				}
+			}
+		</script>
+	</body>
+</html>

@@ -9,5 +9,11 @@
             "database_name": "evillite-hub-db",
             "database_id": "YOUR_ACTUAL_CLOUDFLARE_D1_DATABASE_UUID_HERE"
         }
+    ],
+    "r2_buckets": [
+        {
+            "binding": "STORAGE_BUCKET",
+            "bucket_name": "camelcore-plugins"
+        }
     ]
 }

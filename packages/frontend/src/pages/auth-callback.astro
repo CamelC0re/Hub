@@ -1,0 +1,62 @@
+---
+import '../styles/global.css';
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<title>Authenticating... - EvilLite</title>
+	</head>
+	<body>
+		<div class="loading-screen">
+			<div class="spinner"></div>
+			<p>Authenticating...</p>
+		</div>
+
+		<script>
+			// Extract token from URL
+			const urlParams = new URLSearchParams(window.location.search);
+			const token = urlParams.get('token');
+
+			if (token) {
+				// Store in localStorage
+				localStorage.setItem('evillite_token', token);
+				// Redirect to admin or home
+				window.location.href = '/admin';
+			} else {
+				// Handle error
+				document.querySelector('p')!.textContent = 'Authentication failed. No token found.';
+				setTimeout(() => {
+					window.location.href = '/';
+				}, 3000);
+			}
+		</script>
+	</body>
+	<style>
+		body {
+			justify-content: center;
+			align-items: center;
+		}
+
+		.loading-screen {
+			text-align: center;
+		}
+
+		.spinner {
+			width: 40px;
+			height: 40px;
+			border: 4px solid #2b2b2b;
+			border-top: 4px solid #d8372b;
+			border-radius: 50%;
+			animation: spin 1s linear infinite;
+			margin: 0 auto 1rem auto;
+		}
+
+		@keyframes spin {
+			0% { transform: rotate(0deg); }
+			100% { transform: rotate(360deg); }
+		}
+	</style>
+</html>

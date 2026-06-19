@@ -34,9 +34,17 @@ const app = new Hono<{ Bindings: Bindings }>();
 
 // 2. Enable safe communication routes for your Astro front-end
 app.use('*', async (c, next) => {
-  const allowedOrigins = [c.env.FRONTEND_URL || 'http://localhost:4321'];
   const corsMiddleware = cors({
-    origin: allowedOrigins,
+    origin: (origin) => {
+      const frontendUrl = c.env.FRONTEND_URL || '';
+      const cleanHost = frontendUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+
+      if (!origin) return frontendUrl || 'http://localhost:4321';
+      if (origin.includes('localhost') || (cleanHost && origin.includes(cleanHost))) {
+        return origin;
+      }
+      return frontendUrl || 'http://localhost:4321';
+    },
     credentials: true,
   });
   return corsMiddleware(c, next);

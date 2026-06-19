@@ -14,6 +14,10 @@
 		{
 			"binding": "STORAGE_BUCKET",
 			"bucket_name": "camelcore-plugins"
+		},
+		{
+			"binding": "STORAGE_BUCKET_STAGING",
+			"bucket_name": "camelcore-plugins-staging"
 		}
 	]
 }

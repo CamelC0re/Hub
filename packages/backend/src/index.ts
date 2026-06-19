@@ -21,12 +21,15 @@ const ADMIN_GITHUB_IDS = [
 type Bindings = {
   DB: D1Database;
   STORAGE_BUCKET: R2Bucket;
+  STORAGE_BUCKET_STAGING: R2Bucket;
   DISCORD_CLIENT_ID: string;
   DISCORD_CLIENT_SECRET: string;
   GITHUB_CLIENT_ID: string;
   GITHUB_CLIENT_SECRET: string;
   GITHUB_BUILDER_PAT: string;
   JWT_SECRET: string;
+  HUB_CALLBACK_TOKEN: string;
+  PLUGINS_CDN_URL: string;
   FRONTEND_URL?: string;
 };
 
@@ -399,8 +402,23 @@ app.post('/api/admin/plugins/:id/approve', adminGate(), async (c) => {
     const zipBuffer = await zipRes.arrayBuffer();
     const objectKey = `sources/${id}-${repo}.zip`;
 
-    // Upload to R2
-    await c.env.STORAGE_BUCKET.put(objectKey, zipBuffer);
+    // Upload to R2 Staging
+    await c.env.STORAGE_BUCKET_STAGING.put(objectKey, zipBuffer);
+
+    // Fetch latest commit hash
+    let commit_hash = "unknown";
+    try {
+      const latestCommitRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits`, {
+        headers: {
+          'User-Agent': 'EvilLite-Hub',
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      });
+      if (latestCommitRes.ok) {
+        const commits = await latestCommitRes.json() as any[];
+        if (commits.length > 0) commit_hash = commits[0].sha;
+      }
+    } catch (e) { console.error("Failed to fetch commit hash", e); }
 
     // Trigger GitHub Actions workflow via repository dispatch
     const dispatchRes = await fetch(`https://api.github.com/repos/CamelC0re/Plugin-Builder/dispatches`, {
@@ -415,8 +433,10 @@ app.post('/api/admin/plugins/:id/approve', adminGate(), async (c) => {
         event_type: 'build_plugin',
         client_payload: {
           plugin_id: id,
-          repo_name: repo,
-          r2_key: objectKey
+          plugin_name: plugin.name,
+          author: plugin.author,
+          commit_hash: commit_hash,
+          source_zip_url: `${new URL(c.req.url).origin}/api/internal/download-source?key=${encodeURIComponent(objectKey)}`
         }
       })
     });
@@ -445,6 +465,52 @@ app.post('/api/admin/plugins/:id/reject', adminGate(), async (c) => {
     console.error(err);
     return c.json({ error: "Failed to reject plugin." }, 500);
   }
+});
+
+// Internal Endpoint for GitHub Actions to securely download the source zip
+app.get('/api/internal/download-source', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  if (!authHeader || authHeader !== `Bearer ${c.env.HUB_CALLBACK_TOKEN}`) {
+    return c.json({ error: "Access Denied." }, 401);
+  }
+
+  const r2Key = c.req.query('key');
+  if (!r2Key) return c.json({ error: "Missing key." }, 400);
+
+  const object = await c.env.STORAGE_BUCKET_STAGING.get(r2Key);
+
+  if (object === null) {
+    return c.json({ error: "Source zip not found." }, 404);
+  }
+
+  const headers = new Headers();
+  object.writeHttpMetadata(headers as any);
+  headers.set('etag', object.httpEtag);
+  headers.set('Content-Type', 'application/zip');
+
+  return new Response(object.body, { headers });
+});
+
+// Webhook for GitHub Actions to report successful build
+app.post('/api/plugins/callback', async (c) => {
+  const authHeader = c.req.header('Authorization');
+  if (!authHeader || authHeader !== `Bearer ${c.env.HUB_CALLBACK_TOKEN}`) {
+    return c.json({ error: "Access Denied." }, 401);
+  }
+
+  const body = await c.req.json();
+  const { plugin_id, commit_hash, status } = body;
+
+  if (status === 'published') {
+    // Setting download URL to point to production R2 Bucket
+    // The base URL is configured in wrangler.jsonc via PLUGINS_CDN_URL
+    const downloadUrl = `${c.env.PLUGINS_CDN_URL.replace(/\/$/, '')}/${plugin_id}/plugin.js`; 
+    await c.env.DB.prepare(
+      "UPDATE plugins SET status = 'published', download_url = ?, latest_commit_hash = ? WHERE id = ?"
+    ).bind(downloadUrl, commit_hash, plugin_id).run();
+  }
+
+  return c.json({ success: true });
 });
 
 // --- Developer Dashboard Endpoints ---

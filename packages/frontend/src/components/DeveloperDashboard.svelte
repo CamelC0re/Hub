@@ -112,7 +112,7 @@
                         <span class="hash">Latest Commit: <strong>{plugin?.latest_commit_hash ? plugin.latest_commit_hash.substring(0,7) : 'None'}</strong></span>
                     </div>
                     <div class="actions">
-                        {#if (plugin?.status || 'pending') === 'approved'}
+                        {#if (plugin?.status || 'pending') === 'approved' || (plugin?.status || 'pending') === 'published'}
                             <button class="action-btn" on:click={() => updatePlugin(plugin.id)}>
                                 Sync Latest Commit
                             </button>

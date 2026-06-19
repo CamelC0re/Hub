@@ -563,11 +563,59 @@ app.post('/api/developer/plugins/:id/update', githubDeveloperGate(), async (c) =
 
     const latestCommitHash = commits[0].sha;
 
+    // Fetch the repository zipball
+    const zipUrl = `https://api.github.com/repos/${owner}/${repo}/zipball`;
+    const zipRes = await fetch(zipUrl, {
+      headers: {
+        'User-Agent': 'EvilLite-Hub',
+        'Accept': 'application/vnd.github.v3+json',
+      }
+    });
+
+    if (!zipRes.ok) {
+      return c.json({ error: "Failed to download plugin source from GitHub." }, 500);
+    }
+
+    const zipBuffer = await zipRes.arrayBuffer();
+    const objectKey = `sources/${id}-${repo}.zip`;
+
+    // Upload to R2 Staging
+    await c.env.STORAGE_BUCKET_STAGING.put(objectKey, zipBuffer);
+
+    // Trigger GitHub Actions workflow via repository dispatch
+    const dispatchRes = await fetch(`https://api.github.com/repos/CamelC0re/Plugin-Builder/dispatches`, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'Authorization': `Bearer ${c.env.GITHUB_BUILDER_PAT}`,
+        'User-Agent': 'EvilLite-Hub',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        event_type: 'build_plugin',
+        client_payload: {
+          plugin_id: id,
+          plugin_name: plugin.name,
+          author: plugin.author,
+          github_url: plugin.github_url,
+          approved_by: jwtPayload.username, // Developer syncing their own commit
+          commit_hash: latestCommitHash,
+          source_zip_url: `${new URL(c.req.url).origin}/api/internal/download-source?key=${encodeURIComponent(objectKey)}`
+        }
+      })
+    });
+
+    if (!dispatchRes.ok) {
+        const errorText = await dispatchRes.text();
+        console.error("Failed to dispatch GitHub Action:", errorText);
+        return c.json({ error: "Failed to trigger plugin build workflow." }, 500);
+    }
+
     await c.env.DB.prepare(
       "UPDATE plugins SET latest_commit_hash = ? WHERE id = ?"
     ).bind(latestCommitHash, id).run();
 
-    return c.json({ success: true, message: "Plugin updated successfully.", hash: latestCommitHash });
+    return c.json({ success: true, message: "Plugin updated and build triggered.", hash: latestCommitHash });
   } catch (err) {
     console.error(err);
     return c.json({ error: "Failed to update plugin." }, 500);

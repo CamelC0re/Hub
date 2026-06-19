@@ -522,7 +522,36 @@ app.get('/api/developer/plugins', githubDeveloperGate(), async (c) => {
   const { results } = await c.env.DB.prepare(
     "SELECT * FROM plugins WHERE user_id = ?"
   ).bind(parseInt(jwtPayload.id)).all();
-  return c.json(results);
+
+  // Fetch remote commit hash for each published/approved plugin to check for updates
+  const enrichedResults = await Promise.all(results.map(async (plugin: any) => {
+    if (plugin.status === 'approved' || plugin.status === 'published') {
+      const match = plugin.github_url?.match(/^https:\/\/github\.com\/([\w-]+)\/([\w-]+)$/);
+      if (match) {
+        const [_, owner, repo] = match;
+        try {
+          const ghRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits`, {
+            headers: {
+              'User-Agent': 'EvilLite-Hub',
+              'Accept': 'application/vnd.github.v3+json',
+              'Authorization': `Bearer ${c.env.GITHUB_BUILDER_PAT}`
+            }
+          });
+          if (ghRes.ok) {
+            const commits = await ghRes.json() as any[];
+            if (commits && commits.length > 0) {
+              plugin.remote_commit_hash = commits[0].sha;
+            }
+          }
+        } catch (e) {
+          console.error("Failed to fetch remote commits", e);
+        }
+      }
+    }
+    return plugin;
+  }));
+
+  return c.json(enrichedResults);
 });
 
 app.post('/api/developer/plugins/:id/update', githubDeveloperGate(), async (c) => {

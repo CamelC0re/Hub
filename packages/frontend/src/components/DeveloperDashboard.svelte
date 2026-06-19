@@ -113,9 +113,15 @@
                     </div>
                     <div class="actions">
                         {#if (plugin?.status || 'pending') === 'approved' || (plugin?.status || 'pending') === 'published'}
-                            <button class="action-btn" on:click={() => updatePlugin(plugin.id)}>
-                                Sync Latest Commit
-                            </button>
+                            {#if plugin.remote_commit_hash && plugin.remote_commit_hash !== plugin.latest_commit_hash}
+                                <button class="action-btn" on:click={() => updatePlugin(plugin.id)}>
+                                    Sync Latest Commit
+                                </button>
+                            {:else}
+                                <button class="action-btn" disabled style="opacity: 0.5; cursor: not-allowed; border-color: #555;">
+                                    Up to Date
+                                </button>
+                            {/if}
                         {:else if (plugin?.status || 'pending') === 'pending'}
                             <span class="pending-msg">Pending Admin Review</span>
                         {:else if (plugin?.status || 'pending') === 'rejected'}

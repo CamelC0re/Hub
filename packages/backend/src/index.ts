@@ -303,7 +303,7 @@ app.get('/api/auth/github/callback', async (c) => {
 // Public manifest tracking endpoint for the Electron Client and public web elements [cite: 93, 117]
 app.get('/manifest.json', async (c) => {
   const { results } = await c.env.DB.prepare(
-    "SELECT id, name, description, author, current_version as version, download_url as url FROM plugins WHERE status = 'approved'"
+    "SELECT id, name, description, author, current_version as version, download_url as url FROM plugins WHERE status = 'published'"
   ).all();
   return c.json(results);
 });
@@ -374,6 +374,7 @@ app.get('/api/admin/queue', adminGate(), async (c) => {
 // Admin Approve Endpoint
 app.post('/api/admin/plugins/:id/approve', adminGate(), async (c) => {
   const id = c.req.param('id');
+  const jwtPayload = c.get('jwtPayload') as any;
   try {
     const plugin = await c.env.DB.prepare("SELECT * FROM plugins WHERE id = ?").bind(id).first() as any;
     if (!plugin) {
@@ -435,6 +436,8 @@ app.post('/api/admin/plugins/:id/approve', adminGate(), async (c) => {
           plugin_id: id,
           plugin_name: plugin.name,
           author: plugin.author,
+          github_url: plugin.github_url,
+          approved_by: jwtPayload.username,
           commit_hash: commit_hash,
           source_zip_url: `${new URL(c.req.url).origin}/api/internal/download-source?key=${encodeURIComponent(objectKey)}`
         }

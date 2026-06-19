@@ -190,6 +190,7 @@ app.get('/api/auth/discord/callback', async (c) => {
     username: user.username,
     discord_id: user.discord_id,
     github_id: user.github_id,
+    camel_coins: user.camel_coins || 0,
     isAdmin,
     exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, // 1 week
   }, c.env.JWT_SECRET, 'HS256');
@@ -288,6 +289,7 @@ app.get('/api/auth/github/callback', async (c) => {
     username: user.username,
     discord_id: user.discord_id,
     github_id: user.github_id,
+    camel_coins: user.camel_coins || 0,
     isAdmin,
     exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, // 1 week
   }, c.env.JWT_SECRET, 'HS256');

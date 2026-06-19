@@ -3,6 +3,7 @@
     let discordId = null;
     let githubId = null;
     let username = '';
+    let camelCoins = 0;
     const API_URL = import.meta.env.DEV ? 'http://localhost:8787' : import.meta.env.PUBLIC_API_URL;
 
     // Bypass the onMount quirk and initialize immediately on the client
@@ -16,6 +17,7 @@
                 discordId = payload.discord_id;
                 githubId = payload.github_id;
                 username = payload.username;
+                camelCoins = payload.camel_coins || 0;
             } catch (e) {
                 console.error('Failed to parse token');
                 token = ''; // Clear invalid token
@@ -34,6 +36,10 @@
         <a id="discord-login-btn" href="{API_URL}/api/auth/discord/login" class="login-btn">Login via Discord</a>
         <a id="github-login-btn" href="{API_URL}/api/auth/github/login" class="login-btn github-btn">Login via GitHub</a>
     {:else}
+        <div class="currency-display">
+            <img src="/CamelCoin32.png" alt="Camel Coins" class="coin-icon" />
+            <span class="coin-amount">{camelCoins}</span>
+        </div>
         <span class="user-info">
             Welcome, <strong>{username}</strong>!
         </span>
@@ -56,6 +62,28 @@
         display: flex;
         align-items: center;
         gap: 1rem;
+    }
+
+    .currency-display {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 0.2rem 0.5rem;
+        border-radius: var(--radius-md);
+        border: 1px solid #2b2b2b;
+    }
+
+    .coin-icon {
+        width: 24px;
+        height: 24px;
+    }
+
+    .coin-amount {
+        color: #f1c40f;
+        font-weight: bold;
+        font-family: monospace;
+        font-size: 1.1rem;
     }
 
     .user-info {

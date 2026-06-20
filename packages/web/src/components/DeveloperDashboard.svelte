@@ -8,7 +8,7 @@
 
     // Initialize immediately (safe because of client:only="svelte")
     try {
-        token = localStorage.getItem('evillite_token') || '';
+        token = localStorage.getItem('camelcore_token') || '';
     } catch (e) {
         token = '';
     }
@@ -138,15 +138,20 @@
     .developer-dashboard {
         max-width: 1000px;
         margin: 0 auto;
-        padding: 2rem;
+        padding: 0 2rem 2rem 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
 
     h2 {
-        color: var(--color-primary);
+        color: #d8372b;
         text-transform: uppercase;
         letter-spacing: 2px;
         margin-bottom: 1.5rem;
-        text-shadow: 0 0 10px rgba(184, 134, 11, 0.3);
+        text-shadow: 0 0 10px rgba(216, 55, 43, 0.3);
+        text-align: center;
+        width: 100%;
     }
 
     .error {
@@ -154,24 +159,32 @@
         background: rgba(255, 77, 77, 0.1);
         padding: 1rem;
         border: 1px solid #ff4d4d;
-        border-radius: var(--radius-md);
+        border-radius: 4px;
+        width: 100%;
+        text-align: center;
+        max-width: 600px;
     }
 
     .loading, .empty {
         text-align: center;
         padding: 2rem;
-        color: var(--color-text-muted);
+        color: #ccc;
+        width: 100%;
     }
 
     .submit-section {
-        margin-bottom: 3rem;
+        margin-bottom: 4rem;
         padding: 2rem;
+        width: 100%;
+        max-width: 600px;
+        box-sizing: border-box;
     }
 
     .plugin-list {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1.5rem;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+        width: 100%;
     }
 
     .plugin-card {
@@ -212,14 +225,14 @@
         align-items: center;
         gap: 0.5rem;
         font-size: 0.85rem;
-        color: var(--color-text-muted);
+        color: #ccc;
         margin-top: auto;
         border-top: 1px solid #2b2b2b;
         padding-top: 1rem;
     }
 
     .meta strong {
-        color: var(--color-primary);
+        color: #d8372b;
     }
 
     .actions {
@@ -229,41 +242,31 @@
     }
 
     .action-btn {
-        background: var(--color-surface);
-        color: var(--color-text);
-        border: 1px solid var(--color-primary);
+        background: #151515;
+        color: #f1eee7;
+        border: 1px solid #d8372b;
         padding: 0.5rem 1rem;
-        border-radius: var(--radius-sm);
+        border-radius: 4px;
         cursor: pointer;
-        transition: all var(--transition-fast);
+        transition: all 0.2s;
         text-transform: uppercase;
         font-size: 0.8rem;
         font-weight: bold;
         width: 100%;
     }
 
-    .action-btn:hover {
-        background: var(--color-primary);
-        color: var(--color-surface);
-        box-shadow: 0 0 15px rgba(184, 134, 11, 0.4);
+    .action-btn:hover:not(:disabled) {
+        background: #d8372b;
+        color: #fff;
+        box-shadow: 0 0 15px rgba(216, 55, 43, 0.4);
     }
 
     /* Status specific styles */
-    .plugin-card.pending {
-        border-left: 4px solid #f39c12;
-    }
-    
-    .plugin-card.approved {
-        border-left: 4px solid #2ecc71;
-    }
-    
-    .plugin-card.rejected {
-        border-left: 4px solid #e74c3c;
-    }
+    .plugin-card.pending { border-left: 4px solid #f39c12; }
+    .plugin-card.approved { border-left: 4px solid #2ecc71; }
+    .plugin-card.rejected { border-left: 4px solid #e74c3c; }
 
-    .status-badge strong {
-        text-shadow: 0 0 5px currentColor;
-    }
+    .status-badge strong { text-shadow: 0 0 5px currentColor; }
 
     .plugin-card.pending .status-badge strong { color: #f39c12; }
     .plugin-card.approved .status-badge strong { color: #2ecc71; }
@@ -277,6 +280,7 @@
         align-self: center;
         text-align: center;
         width: 100%;
+        margin-top: 0.5rem;
     }
 
     .rejected-msg {
@@ -287,17 +291,6 @@
         align-self: center;
         text-align: center;
         width: 100%;
-    }
-
-    @media (max-width: 900px) {
-        .plugin-list {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    @media (max-width: 600px) {
-        .plugin-list {
-            grid-template-columns: 1fr;
-        }
+        margin-top: 0.5rem;
     }
 </style>

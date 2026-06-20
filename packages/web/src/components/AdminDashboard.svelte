@@ -6,7 +6,7 @@
 
     // Execute directly (safe because of client:only="svelte")
     try {
-        token = localStorage.getItem('evillite_token') || '';
+        token = localStorage.getItem('camelcore_token') || '';
     } catch (e) {
         token = '';
     }

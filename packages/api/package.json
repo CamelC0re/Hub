@@ -1,5 +1,5 @@
 {
-  "name": "@evillite-hub/backend",
+  "name": "@camelcore/api",
   "version": "1.0.0",
   "private": true,
   "type": "module",

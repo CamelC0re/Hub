@@ -126,9 +126,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@camelcore/api@workspace:packages/backend":
+"@camelcore/api@workspace:packages/api":
   version: 0.0.0-use.local
-  resolution: "@camelcore/api@workspace:packages/backend"
+  resolution: "@camelcore/api@workspace:packages/api"
   dependencies:
     "@cloudflare/workers-types": "npm:^4.20240000.0"
     "@hono/zod-validator": "npm:^0.2.1"
@@ -145,9 +145,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@camelcore/web@workspace:packages/frontend":
+"@camelcore/web@workspace:packages/web":
   version: 0.0.0-use.local
-  resolution: "@camelcore/web@workspace:packages/frontend"
+  resolution: "@camelcore/web@workspace:packages/web"
   dependencies:
     "@astrojs/svelte": "npm:^8.1.2"
     astro: "npm:^6.4.6"

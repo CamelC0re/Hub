@@ -72,7 +72,7 @@ Requires the public API URL (defaults to `http://localhost:8787` in development)
 ## 🤝 Contributing
 Contributions to the CamelCore Hub are always welcome! If you'd like to improve the directory UI, add new developer tools, or enhance the backend API, please feel free to open a pull request. 
 
-For the actual CamelCore Client, refer to the `@camelcore/desktop` and `@camelcore/core` repositories.
+For the actual CamelCore Client, refer to the [Client](https://github.com/CamelC0re/Client) repository.
 
 ## 📜 License
 © 2026 CamelCore. All Rights Reserved.

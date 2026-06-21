@@ -1,5 +1,6 @@
 <script>
     import SubmitPlugin from './SubmitPlugin.svelte';
+    import { addToast } from '../stores/toast.js';
 
     let plugins = [];
     let loading = true;
@@ -74,13 +75,31 @@
 
             if (res.ok) {
                 plugins = plugins.map(p => p.id === id ? { ...p, latest_commit_hash: data.hash } : p);
-                alert('Plugin updated successfully to commit: ' + data.hash);
+                addToast('Plugin updated successfully to commit: ' + data.hash, 'success');
             } else {
-                alert('Failed to update plugin: ' + data.error);
+                addToast('Failed to update plugin: ' + data.error, 'error');
             }
         } catch (err) {
-            alert('An error occurred while updating the plugin.');
+            addToast('An error occurred while updating the plugin.', 'error');
             console.error(err);
+        }
+    }
+
+    async function seedDevData() {
+        try {
+            const API_URL = import.meta.env.DEV ? 'http://localhost:8787' : import.meta.env.PUBLIC_API_URL;
+            const res = await fetch(`${API_URL}/api/dev/seed`, {
+                method: 'POST'
+            });
+            const data = await res.json();
+            if (res.ok) {
+                addToast(data.message, 'success');
+                fetchPlugins();
+            } else {
+                addToast(data.error || 'Failed to seed plugins.', 'error');
+            }
+        } catch (err) {
+            addToast('A network error occurred while seeding.', 'error');
         }
     }
 </script>
@@ -90,6 +109,14 @@
     <div class="submit-section panel inset">
         <SubmitPlugin on:submitted={fetchPlugins} />
     </div>
+
+    {#if import.meta.env.DEV}
+        <div style="text-align: center; margin-bottom: 2rem; width: 100%;">
+            <button class="action-btn" style="width: auto; padding: 0.75rem 2rem; border-color: #f39c12; color: #f39c12;" on:click={seedDevData}>
+                Seed Dummy Plugins (Dev Only)
+            </button>
+        </div>
+    {/if}
 
     <h2>Your Plugins</h2>
 

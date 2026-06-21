@@ -1,10 +1,9 @@
 <script>
     import { createEventDispatcher } from 'svelte';
+    import { addToast } from '../stores/toast.js';
     const dispatch = createEventDispatcher();
 
     let url = '';
-    let message = '';
-    let isError = false;
 
     async function handleSubmit() {
         try {
@@ -22,17 +21,14 @@
             const data = await res.json();
             
             if (res.ok) {
-                message = 'Plugin submitted successfully! Added to queue.';
-                isError = false;
+                addToast('Plugin submitted successfully! Added to queue.', 'success');
                 url = ''; // reset form
                 dispatch('submitted');
             } else {
-                message = data.error || 'Failed to submit plugin.';
-                isError = true;
+                addToast(data.error || 'Failed to submit plugin.', 'error');
             }
         } catch (err) {
-            message = 'A network error occurred.';
-            isError = true;
+            addToast('A network error occurred.', 'error');
         }
     }
 </script>
@@ -51,12 +47,6 @@
         />
     </div>
     <button type="submit" class="submit-btn">Submit</button>
-    
-    {#if message}
-        <div class="message" class:success={!isError} class:error={isError}>
-            {message}
-        </div>
-    {/if}
 </form>
 
 <style>
@@ -98,12 +88,7 @@
 		background: #b82c21;
 	}
 
-	.message {
-		margin-top: 1rem;
-		padding: 0.75rem;
-		border-radius: 4px;
+	.submit-btn:hover {
+		background: #b82c21;
 	}
-
-	.message.success { background: #1a421a; border: 1px solid #2b5a2b; color: #a4d8a4; }
-	.message.error { background: #421a1a; border: 1px solid #5a2b2b; color: #d8a4a4; }
 </style>

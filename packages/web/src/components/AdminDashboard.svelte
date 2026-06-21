@@ -1,4 +1,5 @@
 <script>
+    import { addToast } from '../stores/toast.js';
     let queue = [];
     let loading = true;
     let errorMsg = '';
@@ -54,12 +55,13 @@
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
+                addToast(`Successfully ${action}d plugin.`, 'success');
                 fetchQueue(); // Refresh queue
             } else {
-                alert(`Failed to ${action} plugin.`);
+                addToast(`Failed to ${action} plugin.`, 'error');
             }
         } catch (err) {
-            alert('A network error occurred.');
+            addToast('A network error occurred.', 'error');
         }
     }
 </script>

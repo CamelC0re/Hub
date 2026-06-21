@@ -111,8 +111,9 @@ const githubDeveloperGate = () => async (c: any, next: any) => {
 
 app.get('/api/auth/discord/login', async (c) => {
   const url = new URL(c.req.url);
+  const redirectBase = url.origin.replace('127.0.0.1', 'localhost');
   const existingToken = c.req.query('token');
-  const redirectUri = encodeURIComponent(`${url.origin}/api/auth/discord/callback`);
+  const redirectUri = encodeURIComponent(`${redirectBase}/api/auth/discord/callback`);
   let stateParam = '';
   if (existingToken) {
     stateParam = `&state=${existingToken}`;
@@ -128,7 +129,8 @@ app.get('/api/auth/discord/callback', async (c) => {
   }
 
   const url = new URL(c.req.url);
-  const redirectUri = `${url.origin}/api/auth/discord/callback`;
+  const redirectBase = url.origin.replace('127.0.0.1', 'localhost');
+  const redirectUri = `${redirectBase}/api/auth/discord/callback`;
 
   // Exchange code for token
   const tokenResponse = await fetch('https://discord.com/api/oauth2/token', {
@@ -203,8 +205,9 @@ app.get('/api/auth/discord/callback', async (c) => {
 
 app.get('/api/auth/github/login', async (c) => {
   const url = new URL(c.req.url);
+  const redirectBase = url.origin.replace('127.0.0.1', 'localhost');
   const existingToken = c.req.query('token');
-  const redirectUri = encodeURIComponent(`${url.origin}/api/auth/github/callback`);
+  const redirectUri = encodeURIComponent(`${redirectBase}/api/auth/github/callback`);
   let stateParam = '';
   if (existingToken) {
     stateParam = `&state=${existingToken}`;
@@ -424,32 +427,50 @@ app.post('/api/admin/plugins/:id/approve', adminGate(), async (c) => {
     } catch (e) { console.error("Failed to fetch commit hash", e); }
 
     // Trigger GitHub Actions workflow via repository dispatch
-    const dispatchRes = await fetch(`https://api.github.com/repos/CamelC0re/Plugin-Builder/dispatches`, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/vnd.github.v3+json',
-        'Authorization': `Bearer ${c.env.GITHUB_BUILDER_PAT}`,
-        'User-Agent': 'CamelCore-Hub',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        event_type: 'build_plugin',
-        client_payload: {
-          plugin_id: id,
-          plugin_name: plugin.name,
-          author: plugin.author,
-          github_url: plugin.github_url,
-          approved_by: jwtPayload.username,
-          commit_hash: commit_hash,
-          source_zip_url: `${new URL(c.req.url).origin}/api/internal/download-source?key=${encodeURIComponent(objectKey)}`
-        }
-      })
-    });
+    const isLocalDev = new URL(c.req.url).hostname === 'localhost' || new URL(c.req.url).hostname === '127.0.0.1';
+    
+    if (isLocalDev) {
+      console.log("Mocking GitHub Action dispatch in local development mode.");
+      const mockWebhook = async () => {
+        await new Promise(r => setTimeout(r, 5000));
+        await fetch(`${new URL(c.req.url).origin}/api/plugins/callback`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${c.env.HUB_CALLBACK_TOKEN}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ plugin_id: id, commit_hash: commit_hash, status: 'published' })
+        });
+      };
+      c.executionCtx.waitUntil(mockWebhook());
+    } else {
+      const dispatchRes = await fetch(`https://api.github.com/repos/CamelC0re/Plugin-Builder/dispatches`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/vnd.github.v3+json',
+          'Authorization': `Bearer ${c.env.GITHUB_BUILDER_PAT}`,
+          'User-Agent': 'CamelCore-Hub',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          event_type: 'build_plugin',
+          client_payload: {
+            plugin_id: id,
+            plugin_name: plugin.name,
+            author: plugin.author,
+            github_url: plugin.github_url,
+            approved_by: jwtPayload.username,
+            commit_hash: commit_hash,
+            source_zip_url: `${new URL(c.req.url).origin}/api/internal/download-source?key=${encodeURIComponent(objectKey)}`
+          }
+        })
+      });
 
-    if (!dispatchRes.ok) {
-        const errorText = await dispatchRes.text();
-        console.error("Failed to dispatch GitHub Action:", errorText);
-        return c.json({ error: "Failed to trigger plugin build workflow." }, 500);
+      if (!dispatchRes.ok) {
+          const errorText = await dispatchRes.text();
+          console.error("Failed to dispatch GitHub Action:", errorText);
+          return c.json({ error: "Failed to trigger plugin build workflow." }, 500);
+      }
     }
 
     await c.env.DB.prepare("UPDATE plugins SET status = 'approved' WHERE id = ?").bind(id).run();
@@ -618,32 +639,50 @@ app.post('/api/developer/plugins/:id/update', githubDeveloperGate(), async (c) =
     await c.env.STORAGE_BUCKET_STAGING.put(objectKey, zipBuffer);
 
     // Trigger GitHub Actions workflow via repository dispatch
-    const dispatchRes = await fetch(`https://api.github.com/repos/CamelC0re/Plugin-Builder/dispatches`, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/vnd.github.v3+json',
-        'Authorization': `Bearer ${c.env.GITHUB_BUILDER_PAT}`,
-        'User-Agent': 'CamelCore-Hub',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        event_type: 'build_plugin',
-        client_payload: {
-          plugin_id: id,
-          plugin_name: plugin.name,
-          author: plugin.author,
-          github_url: plugin.github_url,
-          approved_by: jwtPayload.username, // Developer syncing their own commit
-          commit_hash: latestCommitHash,
-          source_zip_url: `${new URL(c.req.url).origin}/api/internal/download-source?key=${encodeURIComponent(objectKey)}`
-        }
-      })
-    });
+    const isLocalDev = new URL(c.req.url).hostname === 'localhost' || new URL(c.req.url).hostname === '127.0.0.1';
+    
+    if (isLocalDev) {
+      console.log("Mocking GitHub Action dispatch in local development mode.");
+      const mockWebhook = async () => {
+        await new Promise(r => setTimeout(r, 5000));
+        await fetch(`${new URL(c.req.url).origin}/api/plugins/callback`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${c.env.HUB_CALLBACK_TOKEN}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ plugin_id: id, commit_hash: latestCommitHash, status: 'published' })
+        });
+      };
+      c.executionCtx.waitUntil(mockWebhook());
+    } else {
+      const dispatchRes = await fetch(`https://api.github.com/repos/CamelC0re/Plugin-Builder/dispatches`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/vnd.github.v3+json',
+          'Authorization': `Bearer ${c.env.GITHUB_BUILDER_PAT}`,
+          'User-Agent': 'CamelCore-Hub',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          event_type: 'build_plugin',
+          client_payload: {
+            plugin_id: id,
+            plugin_name: plugin.name,
+            author: plugin.author,
+            github_url: plugin.github_url,
+            approved_by: jwtPayload.username, // Developer syncing their own commit
+            commit_hash: latestCommitHash,
+            source_zip_url: `${new URL(c.req.url).origin}/api/internal/download-source?key=${encodeURIComponent(objectKey)}`
+          }
+        })
+      });
 
-    if (!dispatchRes.ok) {
-        const errorText = await dispatchRes.text();
-        console.error("Failed to dispatch GitHub Action:", errorText);
-        return c.json({ error: "Failed to trigger plugin build workflow." }, 500);
+      if (!dispatchRes.ok) {
+          const errorText = await dispatchRes.text();
+          console.error("Failed to dispatch GitHub Action:", errorText);
+          return c.json({ error: "Failed to trigger plugin build workflow." }, 500);
+      }
     }
 
     await c.env.DB.prepare(
@@ -655,6 +694,29 @@ app.post('/api/developer/plugins/:id/update', githubDeveloperGate(), async (c) =
     console.error(err);
     return c.json({ error: "Failed to update plugin." }, 500);
   }
+});
+
+// Dev Only Seed Endpoint
+app.post('/api/dev/seed', async (c) => {
+  const isLocalDev = new URL(c.req.url).hostname === 'localhost' || new URL(c.req.url).hostname === '127.0.0.1';
+  if (!isLocalDev) {
+      return c.json({ error: "Only available in local development." }, 403);
+  }
+  
+  const user = await c.env.DB.prepare("SELECT * FROM users LIMIT 1").first() as any;
+  if (!user) {
+      return c.json({ error: "No user found in DB. Please login via frontend first." }, 400);
+  }
+  
+  await c.env.DB.prepare(`
+      INSERT INTO plugins (github_url, name, description, author, download_url, user_id, status, latest_commit_hash) VALUES
+      ('https://github.com/fake/pending-plugin', 'Fake Pending Plugin', 'A plugin waiting for approval', 'fakeuser', 'https://github.com/fake/pending-plugin', ?, 'pending', '1111111'),
+      ('https://github.com/fake/approved-plugin', 'Fake Approved Plugin', 'A plugin approved but not built', 'fakeuser', 'https://github.com/fake/approved-plugin', ?, 'approved', '2222222'),
+      ('https://github.com/fake/published-plugin', 'Fake Published Plugin', 'A fully published plugin', 'fakeuser', 'http://localhost/plugins/fake/plugin.js', ?, 'published', '3333333'),
+      ('https://github.com/fake/rejected-plugin', 'Fake Rejected Plugin', 'A plugin that was rejected', 'fakeuser', 'https://github.com/fake/rejected-plugin', ?, 'rejected', '4444444')
+  `).bind(user.id, user.id, user.id, user.id).run();
+  
+  return c.json({ success: true, message: "Seeded 4 fake plugins into your account." });
 });
 
 // Export the type definition so your Svelte forms gain automatic compile-time RPC type-safety! [cite: 114, 116]

@@ -308,7 +308,7 @@ app.get('/api/auth/github/callback', async (c) => {
 // Public manifest tracking endpoint for the Electron Client and public web elements [cite: 93, 117]
 app.get('/manifest.json', async (c) => {
   const { results } = await c.env.DB.prepare(
-    "SELECT id, name, description, author, current_version as version, download_url as url FROM plugins WHERE status = 'published'"
+    "SELECT id, name, description, author, current_version as version, download_url as url, github_url FROM plugins WHERE status = 'published'"
   ).all();
   return c.json(results);
 });

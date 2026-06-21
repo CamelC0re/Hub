@@ -1,47 +1,56 @@
 <script>
-    import { onMount } from 'svelte';
+	import { onMount } from "svelte";
 
-    let plugins = [];
-    let loading = true;
-    let error = null;
+	let plugins = [];
+	let loading = true;
+	let error = null;
 
-    onMount(async () => {
-        try {
-            const API_URL = import.meta.env.DEV ? 'http://localhost:8787' : import.meta.env.PUBLIC_API_URL;
-            const response = await fetch(`${API_URL}/manifest.json`);
-            if (response.ok) {
-                plugins = await response.json();
-            } else {
-                error = "Failed to fetch plugins manifest";
-            }
-        } catch (e) {
-            error = "Error fetching plugins manifest: " + e.message;
-        } finally {
-            loading = false;
-        }
-    });
+	onMount(async () => {
+		try {
+			const API_URL = import.meta.env.DEV
+				? "http://localhost:8787"
+				: import.meta.env.PUBLIC_API_URL;
+			const response = await fetch(`${API_URL}/manifest.json`);
+			if (response.ok) {
+				plugins = await response.json();
+			} else {
+				error = "Failed to fetch plugins manifest";
+			}
+		} catch (e) {
+			error = "Error fetching plugins manifest: " + e.message;
+		} finally {
+			loading = false;
+		}
+	});
 </script>
 
 <div class="plugins-grid">
-    {#if loading}
-        <p class="loading">Loading plugins...</p>
-    {:else if error}
-        <p class="error">{error}</p>
-    {:else if plugins.length > 0}
-        {#each plugins as plugin}
-            <div class="plugin-card">
-                <h3>{plugin.name}</h3>
-                <p class="author">by {plugin.author}</p>
-                <p class="description">{plugin.description || 'No description provided.'}</p>
-                <div class="plugin-meta">
-                    <span class="version">v{plugin.version || '1.0.0'}</span>
-                    <a href={plugin.url} target="_blank" rel="noopener noreferrer" class="download-link">Source</a>
-                </div>
-            </div>
-        {/each}
-    {:else}
-        <p class="no-plugins">No plugins approved yet. Check back later!</p>
-    {/if}
+	{#if loading}
+		<p class="loading">Loading plugins...</p>
+	{:else if error}
+		<p class="error">{error}</p>
+	{:else if plugins.length > 0}
+		{#each plugins as plugin}
+			<div class="plugin-card">
+				<h3>{plugin.name}</h3>
+				<p class="author">by {plugin.author}</p>
+				<p class="description">
+					{plugin.description || "No description provided."}
+				</p>
+				<div class="plugin-meta">
+					<span class="version">v{plugin.version || "1.0.0"}</span>
+					<a
+						href={plugin.github_url}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="download-link">Source</a
+					>
+				</div>
+			</div>
+		{/each}
+	{:else}
+		<p class="no-plugins">No plugins approved yet. Check back later!</p>
+	{/if}
 </div>
 
 <style>
@@ -59,8 +68,12 @@
 		border: 2px solid #2b2b2b;
 		border-radius: 4px;
 		padding: 1.5rem;
-		box-shadow: inset 0 1px 0 0 #2a2a2a, 0 4px 6px rgba(0, 0, 0, 0.4);
-		transition: transform 0.2s, border-color 0.2s;
+		box-shadow:
+			inset 0 1px 0 0 #2a2a2a,
+			0 4px 6px rgba(0, 0, 0, 0.4);
+		transition:
+			transform 0.2s,
+			border-color 0.2s;
 		display: flex;
 		flex-direction: column;
 	}
@@ -116,7 +129,9 @@
 		padding: 0.3rem 0.75rem;
 		border-radius: 3px;
 		border: 1px solid #444;
-		transition: background 0.2s, color 0.2s;
+		transition:
+			background 0.2s,
+			color 0.2s;
 	}
 
 	.download-link:hover {
@@ -125,14 +140,16 @@
 		border-color: #b82c21;
 	}
 
-	.no-plugins, .loading, .error {
+	.no-plugins,
+	.loading,
+	.error {
 		grid-column: 1 / -1;
 		text-align: center;
 		color: #888;
 		font-style: italic;
 	}
-    
-    .error {
-        color: #d8372b;
-    }
+
+	.error {
+		color: #d8372b;
+	}
 </style>

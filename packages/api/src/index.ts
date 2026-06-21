@@ -647,7 +647,7 @@ app.post('/api/developer/plugins/:id/update', githubDeveloperGate(), async (c) =
     }
 
     await c.env.DB.prepare(
-      "UPDATE plugins SET latest_commit_hash = ? WHERE id = ?"
+      "UPDATE plugins SET latest_commit_hash = ?, status = 'building' WHERE id = ?"
     ).bind(latestCommitHash, id).run();
 
     return c.json({ success: true, message: "Plugin updated and build triggered.", hash: latestCommitHash });

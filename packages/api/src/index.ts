@@ -513,6 +513,10 @@ app.post('/api/plugins/callback', async (c) => {
     await c.env.DB.prepare(
       "UPDATE plugins SET status = 'published', download_url = ?, latest_commit_hash = ? WHERE id = ?"
     ).bind(downloadUrl, commit_hash, plugin_id).run();
+  } else if (status === 'building' || status === 'failed') {
+    await c.env.DB.prepare(
+      "UPDATE plugins SET status = ? WHERE id = ?"
+    ).bind(status, plugin_id).run();
   }
 
   return c.json({ success: true });
